@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="viewport" name="slides-format"/>
+<title>Paraqon — Ruby &amp; Sapphire Auction Intelligence 2016–2026</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,600;0,700;1,400;1,600&amp;family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<style type="text/tailwindcss">
+    @theme {
+      --color-bg: #0a0a0f;
+      --color-bg-deep: #050508;
+      --color-surface: #14141e;
+      --color-text: #f0ece4;
+      --color-text-secondary: #c9c0ae;
+      --color-text-muted: #7a7060;
+      --color-accent-1: #C9A84C;
+      --color-accent-2: #E8C97A;
+      --color-accent-3: #8B1A2A;
+      --color-accent-4: #1e3c8c;
+      --color-glass-bg: rgba(255,255,255,0.05);
+      --color-glass-border: rgba(201,168,76,0.15);
+      --color-vignette: rgba(0,0,0,0.45);
+      --font-display: 'Cormorant', serif;
+      --font-body: 'Manrope', sans-serif;
+    }
+  </style>
+<style>
+    :root { --color-bg:#0a0a0f; --color-text:#f0ece4; --glow-color-rgb:201,168,76; }
+    *,*::before,*::after{box-sizing:border-box;}
+    html,body{background:var(--color-bg);margin:0;}
+    body{font-family:'Manrope',sans-serif;color:#f0ece4;overflow:hidden;height:100vh;width:100vw;}
+    .deck{width:100vw;height:100vh;position:relative;}
+    .slide{position:absolute;top:0;left:0;width:100%;height:100%;background:#0a0a0f;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;transform:scale(0.96);transition:opacity 0.7s ease,transform 0.7s ease;pointer-events:none;overflow:hidden;}
+    .slide.active{opacity:1;transform:scale(1);pointer-events:all;}
+    .slide>.content{position:relative;z-index:2;width:100%;max-width:1140px;padding:clamp(0.8rem,2.5vw,2rem) clamp(1.2rem,3.5vw,3.5rem);}
+    .nav-controls{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:12px;z-index:100;background:rgba(255,255,255,0.04);backdrop-filter:blur(12px);padding:7px 20px;border-radius:40px;border:1px solid rgba(201,168,76,0.18);}
+    .nav-btn{width:34px;height:34px;border:none;background:rgba(255,255,255,0.06);color:#C9A84C;border-radius:50%;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.3s;}
+    .nav-btn:hover{background:rgba(201,168,76,0.15);}
+    .slide-dots{display:flex;gap:6px;flex-wrap:wrap;max-width:260px;justify-content:center;}
+    .slide-dots .dot{width:7px;height:7px;border-radius:50%;background:rgba(201,168,76,0.2);cursor:pointer;transition:background 0.3s,transform 0.3s;}
+    .slide-dots .dot.active{background:#C9A84C;transform:scale(1.3);}
+    .slide-counter{font-size:0.85rem;color:#7a7060;min-width:38px;text-align:center;font-family:'Manrope',sans-serif;}
+    .reveal{opacity:0;transform:translateY(16px);}
+
+    /* Glow */
+    .text-glow{text-shadow:0 0 20px rgba(201,168,76,0.45),0 0 40px rgba(201,168,76,0.2);}
+    .stat-glow{text-shadow:0 0 25px rgba(201,168,76,0.5),0 0 50px rgba(201,168,76,0.22);}
+    @keyframes glow-pulse{0%,100%{text-shadow:0 0 20px rgba(201,168,76,0.45),0 0 40px rgba(201,168,76,0.2);}50%{text-shadow:0 0 30px rgba(201,168,76,0.75),0 0 60px rgba(201,168,76,0.3);}}
+    .glow-pulse{animation:glow-pulse 3s ease-in-out infinite;}
+
+    /* Blobs */
+    @keyframes float-slow{0%{transform:translate(0,0) scale(1);}25%{transform:translate(55px,-45px) scale(1.1);}50%{transform:translate(-35px,35px) scale(0.92);}75%{transform:translate(45px,18px) scale(1.07);}100%{transform:translate(0,0) scale(1);}}
+    @keyframes float-drift{0%{transform:translate(0,0) scale(1) rotate(0deg);}33%{transform:translate(-45px,-55px) scale(1.13) rotate(3deg);}66%{transform:translate(38px,28px) scale(0.9) rotate(-2deg);}100%{transform:translate(0,0) scale(1) rotate(0deg);}}
+    @keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-12px);}}
+    .gradient-mesh{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;}
+    .blob{position:absolute;border-radius:50%;filter:blur(80px);animation:float-slow 12s ease-in-out infinite;}
+    .blob:nth-child(2){animation:float-drift 16s ease-in-out infinite;}
+    .blob:nth-child(3){animation:float-slow 20s ease-in-out infinite reverse;}
+
+    /* Depth */
+    .slide::before{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");background-repeat:repeat;background-size:256px;opacity:0.03;mix-blend-mode:overlay;}
+    .slide::after{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,0.45) 100%);}
+
+    /* Typography */
+    .slide-label{font-family:'Manrope',sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:#7a7060;margin-bottom:0.45rem;}
+    .slide-title{font-family:'Cormorant',serif;font-size:clamp(1.55rem,3vw,2.25rem);font-weight:700;color:#f0ece4;line-height:1.15;margin-bottom:1rem;}
+    .slide-title span.gold{color:#C9A84C;}
+
+    /* Glass card */
+    .gc{background:rgba(255,255,255,0.045);backdrop-filter:blur(10px);border:1px solid rgba(201,168,76,0.12);border-radius:10px;padding:0.85rem 1rem;}
+    .gc.rb{border-left:3px solid #8B1A2A;}
+    .gc.gd{border-left:3px solid #C9A84C;}
+    .gc.sp{border-left:3px solid #3d6bd4;}
+    .gc.nt{border-left:3px solid rgba(200,200,200,0.25);}
+
+    /* Bullet list */
+    .bl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:0.38rem;}
+    .bl li{font-family:'Manrope',sans-serif;font-size:0.91rem;font-weight:400;color:#c9c0ae;line-height:1.5;padding-left:1rem;position:relative;}
+    .bl li::before{content:'◆';position:absolute;left:0;color:#C9A84C;font-size:0.42rem;top:0.38rem;}
+    .bl li strong{color:#f0ece4;font-weight:600;}
+    .bl.sm li{font-size:0.85rem;}
+    .bl.rb li::before{color:#e06070;}
+    .bl.sp li::before{color:#6a9ae8;}
+
+    /* Bar fill */
+    .bar-track{background:rgba(255,255,255,0.07);border-radius:4px;height:9px;overflow:hidden;}
+    .bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#8B1A2A,#C9A84C);transition:width 0.9s ease;width:0;}
+    .bar-fill.sp{background:linear-gradient(90deg,#1e3c8c,#3d6bd4);}
+    .bar-fill.gd{background:linear-gradient(90deg,#C9A84C,#E8C97A);}
+
+    /* Tier badge */
+     .tier{display:inline-block;font-size:0.75rem;font-weight:800;padding:0.12rem 0.42rem;border-radius:4px;letter-spacing:0.08em;}
+    .t1{background:rgba(201,168,76,0.18);color:#C9A84C;border:1px solid rgba(201,168,76,0.3);}
+    .t2{background:rgba(200,200,200,0.1);color:#aaa;border:1px solid rgba(200,200,200,0.2);}
+    .t3{background:rgba(100,100,200,0.1);color:#8899cc;border:1px solid rgba(100,100,200,0.2);}
+
+    /* Phase card */
+    .phase-card{background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.12);border-radius:10px;padding:0.8rem 0.9rem;}
+    .phase-label{font-size:0.75rem;font-weight:800;letter-spacing:0.16em;text-transform:uppercase;color:#C9A84C;margin-bottom:0.28rem;}
+    .phase-period{font-family:'Cormorant',serif;font-size:1.05rem;font-weight:700;color:#f0ece4;margin-bottom:0.42rem;}
+    .phase-ppc{font-size:0.85rem;font-weight:700;color:#E8C97A;margin-bottom:0.5rem;background:rgba(201,168,76,0.1);display:inline-block;padding:0.15rem 0.45rem;border-radius:4px;}
+
+    /* SVG chart */
+    .chart-label{font-family:'Manrope',sans-serif;font-size:0.75rem;fill:#7a7060;}
+    .chart-value{font-family:'Manrope',sans-serif;font-size:0.85rem;fill:#E8C97A;font-weight:700;}
+    .mkt-path{stroke-dasharray:1200;stroke-dashoffset:1200;transition:stroke-dashoffset 1.4s ease;}
+    .mkt-path.drawn{stroke-dashoffset:0;}
+
+    /* Insight card */
+    .ins-card{background:rgba(255,255,255,0.045);border-radius:12px;padding:0.9rem 1rem;height:100%;display:flex;flex-direction:column;gap:0.4rem;border:1px solid rgba(201,168,76,0.1);}
+    .ins-num{font-family:'Cormorant',serif;font-size:1.12rem;font-weight:700;letter-spacing:0.08em;}
+    .ins-title{font-family:'Cormorant',serif;font-size:1.22rem;font-weight:700;color:#f0ece4;line-height:1.2;}
+    .ins-divider{height:1px;background:rgba(201,168,76,0.15);margin:0.2rem 0;}
+
+    /* What we cover cards */
+    .wc-card{background:rgba(255,255,255,0.04);border-radius:10px;padding:1rem 1.1rem;border:1px solid rgba(255,255,255,0.07);display:flex;flex-direction:column;gap:0.35rem;transition:border-color 0.3s;}
+    .wc-card:hover{border-color:rgba(201,168,76,0.3);}
+    .wc-num{font-family:'Manrope',sans-serif;font-size:0.85rem;font-weight:700;color:#7a7060;}
+    .wc-title{font-family:'Manrope',sans-serif;font-size:0.82rem;font-weight:700;color:#f0ece4;}
+    .wc-desc{font-family:'Manrope',sans-serif;font-size:0.85rem;font-weight:400;color:#7a7060;line-height:1.45;}
+    .wc-sep{height:2px;border-radius:2px;width:40px;margin-bottom:0.25rem;}
+
+    /* Currency note */
+    .currency-note{font-size:0.75rem;color:#7a7060;letter-spacing:0.08em;margin-top:0.5rem;}
+
+    
+    /* Insight card text override */
+    .ins-card .bl.sm li { font-size: 0.74rem; }
+    .ins-card .bl.sm li::before { top: 0.38rem; }
+    @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.2s!important;}}
+  </style>
+</head>
+<body>
+<div class="mouse-spotlight" style="position:fixed;inset:0;z-index:99;pointer-events:none;"></div>
+<div class="deck">
+<div class="slide active" data-slide="1">
+<div class="gradient-mesh">
+<div class="blob" style="width:500px;height:500px;top:-120px;right:-100px;background:#C9A84C;opacity:0.12;"></div>
+<div class="blob" style="width:320px;height:320px;bottom:-80px;left:-60px;background:#8B1A2A;opacity:0.14;"></div>
+<div class="blob" style="width:220px;height:220px;top:42%;left:12%;background:#1e3c8c;opacity:0.1;"></div>
+</div>
+<canvas class="particle-canvas" style="position:absolute;inset:0;z-index:1;"></canvas>
+<div class="content" style="text-align:center;">
+<div class="reveal" style="font-size:4rem;animation:float 3.5s ease-in-out infinite;margin-bottom:1rem;">💎</div>
+<h1 class="reveal" style="font-family:'Cormorant',serif;font-size:clamp(2.6rem,5.5vw,4.8rem);font-weight:700;background:linear-gradient(135deg,#C9A84C,#E8C97A,#C9A84C);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-0.02em;margin:0 0 0.7rem;">Ruby &amp; Sapphire<br/>Auction Intelligence</h1>
+<p class="reveal" style="font-size:0.82rem;font-weight:800;letter-spacing:0.28em;text-transform:uppercase;color:#7a7060;margin:0 0 1.8rem;">Global Auction Market · 2016–2026 · Paraqon Research Brief</p>
+<div class="reveal" style="display:flex;gap:2rem;justify-content:center;flex-wrap:wrap;">
+<div style="text-align:center;">
+<div class="text-glow" style="font-family:'Cormorant',serif;font-size:2.8rem;font-weight:700;color:#3d6bd4;">$9.6M/ct</div>
+<div style="font-size:0.75rem;letter-spacing:0.14em;text-transform:uppercase;color:#7a7060;margin-top:0.25rem;">World Record Sapphire /ct</div>
+</div>
+<div style="width:1px;background:rgba(201,168,76,0.2);"></div>
+<div style="text-align:center;">
+<div class="text-glow" style="font-family:'Cormorant',serif;font-size:2.8rem;font-weight:700;color:#e06070;">$1.22M/ct</div>
+<div style="font-size:0.75rem;letter-spacing:0.14em;text-transform:uppercase;color:#7a7060;margin-top:0.25rem;">World Record Ruby /ct</div>
+</div>
+<div style="width:1px;background:rgba(201,168,76,0.2);"></div>
+<div style="text-align:center;">
+<div class="text-glow" style="font-family:'Cormorant',serif;font-size:2.8rem;font-weight:700;color:#e06070;">$34.8M</div>
+<div style="font-size:0.75rem;letter-spacing:0.14em;text-transform:uppercase;color:#7a7060;margin-top:0.25rem;">World Record Ruby Sold</div>
+</div>
+</div>
+</div>
+</div>
+<div class="slide" data-slide="2">
+<div class="gradient-mesh">
+<div class="blob" style="width:360px;height:360px;top:-90px;right:-70px;background:#1e3c8c;opacity:0.08;"></div>
+<div class="blob" style="width:260px;height:260px;bottom:-60px;left:-40px;background:#8B1A2A;opacity:0.06;"></div>
+</div>
+<div class="content">
+<h2 class="reveal" style="font-family:'Cormorant',serif;font-size:clamp(2.2rem,4.2vw,3.5rem);font-weight:700;color:#f0ece4;margin:0 0 1.15rem;">What Will Cover</h2>
+<div class="reveal" style="width:100%;border-top:1px solid rgba(106,154,232,0.45);margin-bottom:1rem;"></div>
+<div class="reveal" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+<div style="padding:1rem 1.2rem;border:1px solid rgba(224,96,112,0.22);border-left:4px solid #e06070;border-radius:20px;background:rgba(255,255,255,0.03);min-height:118px;">
+<div style="font-size:1.23rem;color:#f0ece4;margin-bottom:0.55rem;">01</div>
+<div style="font-size:1.23rem;font-weight:800;color:#f0ece4;margin-bottom:0.28rem;">Data Foundation</div>
+<div style="font-size:1.03rem;color:#9f978a;line-height:1.45;">Sources, reliability limits and normalization rules.</div>
+</div>
+
+<div style="padding:1rem 1.2rem;border:1px solid rgba(224,96,112,0.22);border-left:4px solid #e06070;border-radius:20px;background:rgba(255,255,255,0.03);min-height:118px;">
+<div style="font-size:1.23rem;color:#f0ece4;margin-bottom:0.55rem;">02</div>
+<div style="font-size:1.23rem;font-weight:800;color:#f0ece4;margin-bottom:0.28rem;">Market Overview</div>
+<div style="font-size:1.03rem;color:#9f978a;line-height:1.45;">Macro trend evolution, market inflections and demand shifts.</div>
+</div>
+<div style="padding:1rem 1.2rem;border:1px solid rgba(106,154,232,0.22);border-left:4px solid #6a9ae8;border-radius:20px;background:rgba(255,255,255,0.03);min-height:118px;">
+<div style="font-size:1.23rem;color:#f0ece4;margin-bottom:0.55rem;">03</div>
+<div style="font-size:1.23rem;font-weight:800;color:#f0ece4;margin-bottom:0.28rem;">Ruby Deep Dive</div>
+<div style="font-size:1.03rem;color:#9f978a;line-height:1.45;">Ruby benchmarks, landmark records and sourcing insights.</div>
+</div>
+<div style="padding:1rem 1.2rem;border:1px solid rgba(201,168,76,0.22);border-left:4px solid #C9A84C;border-radius:20px;background:rgba(255,255,255,0.03);min-height:118px;">
+<div style="font-size:1.23rem;color:#f0ece4;margin-bottom:0.55rem;">04</div>
+<div style="font-size:1.23rem;font-weight:800;color:#f0ece4;margin-bottom:0.28rem;">Sapphire Deep Dive</div>
+<div style="font-size:1.03rem;color:#9f978a;line-height:1.45;">Sapphire premiums, record lots and carat-bracket pricing.</div>
+</div>
+<div style="padding:1rem 1.2rem;border:1px solid rgba(224,96,112,0.22);border-left:4px solid #e06070;border-radius:20px;background:rgba(255,255,255,0.03);min-height:118px;">
+<div style="font-size:1.23rem;color:#f0ece4;margin-bottom:0.55rem;">05</div>
+<div style="font-size:1.23rem;font-weight:800;color:#f0ece4;margin-bottom:0.28rem;">Strategic Insights for Paraqon</div>
+<div style="font-size:1.03rem;color:#9f978a;line-height:1.45;">Actionable sourcing, pricing and inventory strategy.</div>
+</div>
+<div style="padding:1rem 1.2rem;border:1px solid rgba(106,154,232,0.22);border-left:4px solid #6a9ae8;border-radius:20px;background:rgba(255,255,255,0.03);min-height:118px;">
+<div style="font-size:1.23rem;color:#f0ece4;margin-bottom:0.55rem;">06</div>
+<div style="font-size:1.23rem;font-weight:800;color:#f0ece4;margin-bottom:0.28rem;">Further Investigation</div>
+<div style="font-size:1.03rem;color:#9f978a;line-height:1.45;">Sourcing gaps, venue-by-venue pricing anomalies, and the next data layers Paraqon should build into its gemstone intelligence stack.</div>
+</div>
+</div>
+</div>
+</div>
+<div class="slide" data-slide="3">
+<div class="gradient-mesh">
+<div class="blob" style="width:350px;height:350px;top:-80px;right:-60px;background:#C9A84C;opacity:0.07;"></div>
+<div class="blob" style="width:250px;height:250px;bottom:-60px;left:-40px;background:#8B1A2A;opacity:0.07;"></div>
+</div>
+<div class="content">
+<div class="slide-label reveal">DATA FOUNDATION</div>
+<h2 class="slide-title reveal">Top 5 <span class="gold">Auction Intelligence</span> Sources</h2>
+<!-- Table redesigned: each row is a card with bullet lists -->
+<div class="reveal" style="display:flex;flex-direction:column;gap:0.45rem;">
+<!-- Header row -->
+<div style="display:grid;grid-template-columns:38px 130px 90px 1fr 1fr;gap:0.5rem;padding:0 0.7rem 0.3rem;">
+<span style="font-size:0.75rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#7a7060;">Tier</span>
+<span style="font-size:0.75rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#7a7060;">Source</span>
+<span style="font-size:0.75rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#7a7060;">Coverage</span>
+<span style="font-size:0.75rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#7a7060;">Strengths</span>
+<span style="font-size:0.75rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#7a7060;">Key Limitations</span>
+</div>
+<!-- Row 1: Christie's -->
+<div style="display:grid;grid-template-columns:38px 130px 90px 1fr 1fr;gap:0.5rem;align-items:start;background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.1);border-left:3px solid #C9A84C;border-radius:8px;padding:0.6rem 0.7rem;">
+<span class="tier t1">T1</span>
+<span style="font-size:0.91rem;font-weight:700;color:#f0ece4;">Christie's</span>
+<span style="font-size:0.85rem;color:#c9c0ae;">1985–present</span>
+<ul class="bl sm" style="gap:0.28rem;">
+<li>GRS/GIA certs cited per lot</li>
+<li>HK/Geneva/NY trifecta coverage</li>
+<li>Live lot-level price data</li>
+</ul>
+<ul class="bl sm" style="gap:0.28rem;">
+<li>Buyer's premium varies 15–25%</li>
+<li>Hammer vs. realized distinction critical</li>
+</ul>
+</div>
+<!-- Row 2: Sotheby's -->
+<div style="display:grid;grid-template-columns:38px 130px 90px 1fr 1fr;gap:0.5rem;align-items:start;background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.1);border-left:3px solid #C9A84C;border-radius:8px;padding:0.6rem 0.7rem;">
+<span class="tier t1">T1</span>
+<span style="font-size:0.91rem;font-weight:700;color:#f0ece4;">Sotheby's</span>
+<span style="font-size:0.85rem;color:#c9c0ae;">1985–present</span>
+<ul class="bl sm" style="gap:0.28rem;">
+<li>Strongest NY colored-stone results</li>
+<li>Detailed provenance narratives</li>
+<li>Estrela de Fura $34.8M record (2023)</li>
+</ul>
+<ul class="bl sm" style="gap:0.28rem;">
+<li>HK catalogue inconsistency pre-2018</li>
+<li>Some lots lack lab cert citation</li>
+</ul>
+</div>
+<!-- Row 3: Bonhams -->
+<div style="display:grid;grid-template-columns:38px 130px 90px 1fr 1fr;gap:0.5rem;align-items:start;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:0.6rem 0.7rem;">
+<span class="tier t2">T2</span>
+<span style="font-size:0.91rem;font-weight:700;color:#f0ece4;">Bonhams</span>
+<span style="font-size:0.85rem;color:#c9c0ae;">2000–present</span>
+<ul class="bl sm" style="gap:0.28rem;">
+<li>Mid-market pricing signal</li>
+<li>London/HK/SF nodes</li>
+<li>Useful for treatment-grade comps</li>
+</ul>
+<ul class="bl sm" style="gap:0.28rem;">
+<li>Lower UHNW lot frequency</li>
+<li>Sparse origin data on sub-$500K lots</li>
+</ul>
+</div>
+<!-- Row 4: Poly/Hanhai -->
+<div style="display:grid;grid-template-columns:38px 130px 90px 1fr 1fr;gap:0.5rem;align-items:start;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:0.6rem 0.7rem;">
+<span class="tier t2">T2</span>
+<span style="font-size:0.91rem;font-weight:700;color:#f0ece4;">Poly / Hanhai</span>
+<span style="font-size:0.85rem;color:#c9c0ae;">2010–present</span>
+<ul class="bl sm" style="gap:0.28rem;">
+<li>China domestic demand pulse</li>
+<li>Jade/ruby crossover buyer data</li>
+<li>HKD pricing granularity</li>
+</ul>
+<ul class="bl sm" style="gap:0.28rem;">
+<li>No English catalogue</li>
+<li>Limited lab cert transparency</li>
+<li>RMB FX adds noise</li>
+</ul>
+</div>
+<!-- Row 5: Gemfields -->
+<div style="display:grid;grid-template-columns:38px 130px 90px 1fr 1fr;gap:0.5rem;align-items:start;background:rgba(255,255,255,0.04);border:1px solid rgba(100,100,200,0.15);border-radius:8px;padding:0.6rem 0.7rem;">
+<span class="tier t3">T3</span>
+<span style="font-size:0.91rem;font-weight:700;color:#f0ece4;">Gemfields MRM</span>
+<span style="font-size:0.85rem;color:#c9c0ae;">2014–present</span>
+<ul class="bl sm" style="gap:0.28rem;">
+<li>Only transparent rough ruby benchmark globally</li>
+<li>Bi-annual auctions; published avg. USD/ct</li>
+</ul>
+<ul class="bl sm" style="gap:0.28rem;">
+<li>Rough only — not polished</li>
+<li>Mixed-quality lots limit direct PPC comp</li>
+</ul>
+</div>
+</div>
+<div class="reveal" style="display:flex;gap:0.55rem;margin-top:0.65rem;">
+<div class="gc gd" style="flex:1;padding:0.55rem 0.8rem;">
+<div style="font-size:0.75rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#C9A84C;margin-bottom:0.25rem;">Critical Rule</div>
+<div style="font-size:0.87rem;color:#c9c0ae;">Always use <strong style="color:#f0ece4;">realized price incl. buyer's premium</strong> ÷ carat weight for PPC. Hammer price underestimates by 12–25%.</div>
+</div>
+<div class="gc rb" style="flex:1;padding:0.55rem 0.8rem;">
+<div style="font-size:0.75rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#8B1A2A;margin-bottom:0.25rem;">Certification Filter</div>
+<div style="font-size:0.87rem;color:#c9c0ae;">Only GRS, Gübelin, SSEF, or GIA certificates are auction-recognized for origin &amp; treatment attribution.</div>
+</div>
+</div>
+</div>
+</div>
+<div class="slide" data-slide="4">
+<div class="gradient-mesh">
+<div class="blob" style="width:380px;height:380px;top:-90px;right:-70px;background:#C9A84C;opacity:0.07;"></div>
+<div class="blob" style="width:240px;height:240px;bottom:-50px;left:-30px;background:#1e3c8c;opacity:0.07;"></div>
+</div>
+<div class="content">
+<div class="slide-label reveal">DATA FOUNDATION</div>
+<h2 class="slide-title reveal">Data Normalization <span class="gold">Methodology</span></h2>
+<div class="reveal" style="display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;">
+<!-- Step 01 -->
+<div class="gc gd" style="padding:0.85rem 1rem;">
+<div style="display:flex;align-items:flex-start;gap:0.7rem;">
+<div style="font-family:'Cormorant',serif;font-size:1.6rem;font-weight:700;color:#C9A84C;line-height:1;flex-shrink:0;">01</div>
+<div style="flex:1;">
+<div style="font-size:0.91rem;font-weight:700;color:#f0ece4;margin-bottom:0.4rem;">Price per Carat Formula</div>
+<ul class="bl sm">
+<li>Realized Price (incl. buyer's premium) ÷ Carat Weight</li>
+<li>Lock currency to HKMA daily FX on auction date</li>
+<li>All values reported in USD throughout this presentation</li>
+</ul>
+</div>
+</div>
+</div>
+<!-- Step 02 -->
+<div class="gc gd" style="padding:0.85rem 1rem;">
+<div style="display:flex;align-items:flex-start;gap:0.7rem;">
+<div style="font-family:'Cormorant',serif;font-size:1.6rem;font-weight:700;color:#C9A84C;line-height:1;flex-shrink:0;">02</div>
+<div style="flex:1;">
+<div style="font-size:0.91rem;font-weight:700;color:#f0ece4;margin-bottom:0.4rem;">Missing Data Imputation</div>
+<ul class="bl sm">
+<li>Flag lots without lab cert as <em>treatment-unknown</em></li>
+<li>Use median PPC by origin × carat bracket for comparable imputation</li>
+
+</ul>
+</div>
+</div>
+</div>
+<!-- Step 03 -->
+<div class="gc gd" style="padding:0.85rem 1rem;">
+<div style="display:flex;align-items:flex-start;gap:0.7rem;">
+<div style="font-family:'Cormorant',serif;font-size:1.6rem;font-weight:700;color:#C9A84C;line-height:1;flex-shrink:0;">03</div>
+<div style="flex:1;">
+<div style="font-size:0.91rem;font-weight:700;color:#f0ece4;margin-bottom:0.4rem;">Outlier Handling</div>
+<ul class="bl sm">
+<li>Cap extreme outliers so one exceptional lot does not distort the whole peer group</li>
+<li>World-record lots are tagged separately</li>
+<li>They distort cohort medians if included in standard analysis</li>
+</ul>
+</div>
+</div>
+</div>
+<!-- Step 04 -->
+<div class="gc gd" style="padding:0.85rem 1rem;">
+<div style="display:flex;align-items:flex-start;gap:0.7rem;">
+<div style="font-family:'Cormorant',serif;font-size:1.6rem;font-weight:700;color:#C9A84C;line-height:1;flex-shrink:0;">04</div>
+<div style="flex:1;">
+<div style="font-size:0.91rem;font-weight:700;color:#f0ece4;margin-bottom:0.4rem;">Pass Rate Signal</div>
+<ul class="bl sm">
+<li>Track % of lots sold per auction session</li>
+<li>Pass rate &gt;40% = buyer's market → sourcing window (buy signal)</li>
+<li>Pass rate &lt;10% = seller's market → exit window (sell signal)</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="gc" style="padding:0.6rem 0.9rem;margin-top:0.7rem;display:flex;align-items:center;gap:0.8rem;">
+<div style="font-size:0.75rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#C9A84C;flex-shrink:0;">Data Scope</div>
+<div style="font-size:0.87rem;color:#c9c0ae;">Christie's &amp; Sotheby's lot-level records 2016–2026 · Gemfields MRM bi-annual auction results 2014–2026 · All figures in <strong style="color:#E8C97A;">USD</strong></div>
+</div>
+</div>
+</div>
+<div class="slide" data-slide="5">
+<div class="gradient-mesh">
+<div class="blob" style="width:420px;height:420px;top:-100px;right:-80px;background:#C9A84C;opacity:0.09;"></div>
+<div class="blob" style="width:260px;height:260px;bottom:-60px;left:-40px;background:#1e3c8c;opacity:0.08;"></div>
+</div>
+<canvas class="particle-canvas-ambient" style="position:absolute;inset:0;z-index:1;"></canvas>
+<div class="content">
+<div class="slide-label reveal">MARKET OVERVIEW</div>
+<h2 class="slide-title reveal">Global Colored Gemstone <span class="gold">Market 2016–2026</span></h2>
+<!-- 4 KPI cards -->
+<div class="reveal" style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.65rem;margin-bottom:0.85rem;">
+<div class="gc" style="text-align:center;padding:0.8rem 0.4rem;border-top:2px solid #8B1A2A;">
+<div class="glow-pulse" style="font-family:'Cormorant',serif;font-size:2.1rem;font-weight:700;color:#e06070;line-height:1;">$12.1B</div>
+<div style="font-size:0.85rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#7a7060;margin-top:0.25rem;">Market Value 2026</div>
+</div>
+<div class="gc" style="text-align:center;padding:0.8rem 0.4rem;border-top:2px solid #C9A84C;">
+<div style="font-family:'Cormorant',serif;font-size:2.1rem;font-weight:700;color:#C9A84C;line-height:1;">$27.5B</div>
+<div style="font-size:0.85rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#7a7060;margin-top:0.25rem;">Forecast 2033</div>
+</div>
+<div class="gc" style="text-align:center;padding:0.8rem 0.4rem;border-top:2px solid #E8C97A;">
+<div style="font-family:'Cormorant',serif;font-size:2.1rem;font-weight:700;color:#E8C97A;line-height:1;">10.2%</div>
+<div style="font-size:0.85rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#7a7060;margin-top:0.25rem;">Compound annual growth rate 2026–2033</div>
+</div>
+<div class="gc" style="text-align:center;padding:0.8rem 0.4rem;border-top:2px solid #3d6bd4;">
+<div style="font-family:'Cormorant',serif;font-size:2.1rem;font-weight:700;color:#6a9ae8;line-height:1;">#1</div>
+<div style="font-size:0.85rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#7a7060;margin-top:0.25rem;">Asia Pacific Region 2026</div>
+</div>
+</div>
+<!-- SVG line chart 2016-2033 -->
+<div class="gc reveal" style="padding:0.85rem 1rem;margin-bottom:0.7rem;">
+<div style="font-size:0.75rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#7a7060;margin-bottom:0.5rem;">Colored Gemstone Market Size (USD Billion) · 2016–2033F</div>
+<svg style="width:100%;overflow:visible;" viewbox="0 0 740 120">
+<line stroke="rgba(255,255,255,0.06)" stroke-width="1" x1="40" x2="40" y1="10" y2="105"></line>
+<line stroke="rgba(255,255,255,0.06)" stroke-width="1" x1="40" x2="720" y1="105" y2="105"></line>
+<line stroke="rgba(255,255,255,0.04)" stroke-dasharray="4,4" stroke-width="1" x1="40" x2="720" y1="70" y2="70"></line>
+<line stroke="rgba(255,255,255,0.04)" stroke-dasharray="4,4" stroke-width="1" x1="40" x2="720" y1="40" y2="40"></line>
+<text class="chart-label" text-anchor="end" x="35" y="108">$0</text>
+<text class="chart-label" text-anchor="end" x="35" y="73">$12B</text>
+<text class="chart-label" text-anchor="end" x="35" y="43">$20B</text>
+<text class="chart-label" text-anchor="end" x="35" y="13">$28B</text>
+<!-- Historical: 2016~$4B→y=92, 2018~$5B→y=88, 2020~$7B→y=82, 2022~$9B→y=74, 2024~$10B→y=70, 2026~$12.1B→y=62 -->
+<!-- x: 2016=75, 2033=710, range=635, step=37.4 per yr -->
+<!-- 2016=75, 2018=150, 2020=225, 2022=300, 2024=375, 2026=450, 2030=600, 2033=710 -->
+<path class="mkt-path" d="M75,92 C115,90 145,88 225,82 S300,75 375,70 S430,65 450,62" fill="none" id="histLine2" stroke="url(#g2)" stroke-linecap="round" stroke-width="2.5"></path>
+<path class="mkt-path" d="M450,62 C510,54 570,42 620,30 S680,18 710,12" fill="none" id="fcastLine2" stroke="url(#gb2)" stroke-dasharray="6,4" stroke-linecap="round" stroke-width="2.5"></path>
+<path d="M75,92 C115,90 145,88 225,82 S300,75 375,70 S430,65 450,62 L450,105 L75,105 Z" fill="url(#area2)" opacity="0.2"></path>
+<circle cx="75" cy="92" fill="#C9A84C" r="3.5"></circle>
+<circle cx="225" cy="82" fill="#C9A84C" r="3.5"></circle>
+<circle cx="375" cy="70" fill="#C9A84C" r="3.5"></circle>
+<circle cx="450" cy="62" fill="#e06070" r="5" stroke="#8B1A2A" stroke-width="1.5"></circle>
+<circle cx="600" cy="30" fill="#6a9ae8" r="3.5"></circle>
+<circle cx="710" cy="12" fill="#6a9ae8" r="3.5"></circle>
+<text class="chart-value" dy="-5" text-anchor="middle" x="75" y="88">~$4B</text>
+<text class="chart-value" dy="-5" text-anchor="middle" x="225" y="78">~$7B</text>
+<text class="chart-value" dy="-5" text-anchor="middle" x="375" y="66">~$10B</text>
+<text class="chart-value" dy="-5" fill="#e06070" text-anchor="middle" x="450" y="58">$12.1B</text>
+<text class="chart-value" dy="-5" fill="#6a9ae8" text-anchor="middle" x="600" y="26">~$20B</text>
+<text class="chart-value" dy="-5" fill="#6a9ae8" text-anchor="middle" x="710" y="8">$27.5B</text>
+<text class="chart-label" text-anchor="middle" x="75" y="117">2016</text>
+<text class="chart-label" text-anchor="middle" x="225" y="117">2020</text>
+<text class="chart-label" text-anchor="middle" x="375" y="117">2024</text>
+<text class="chart-label" text-anchor="middle" x="450" y="117">2026★</text>
+<text class="chart-label" text-anchor="middle" x="600" y="117">2030F</text>
+<text class="chart-label" text-anchor="middle" x="710" y="117">2033F</text>
+<line stroke="#C9A84C" stroke-width="2.5" x1="555" x2="573" y1="100" y2="100"></line>
+<text class="chart-label" x="577" y="103">Historical</text>
+<line stroke="#6a9ae8" stroke-dasharray="5,3" stroke-width="2.5" x1="630" x2="648" y1="100" y2="100"></line>
+<text class="chart-label" x="652" y="103">Forecast</text>
+<defs>
+<lineargradient id="g2" x1="0" x2="1" y1="0" y2="0"><stop offset="0%" stop-color="#8B1A2A"></stop><stop offset="100%" stop-color="#C9A84C"></stop></lineargradient>
+<lineargradient id="gb2" x1="0" x2="1" y1="0" y2="0"><stop offset="0%" stop-color="#C9A84C"></stop><stop offset="100%" stop-color="#3d6bd4"></stop></lineargradient>
+<lineargradient id="area2" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#C9A84C" stop-opacity="0.3"></stop><stop offset="100%" stop-color="#C9A84C" stop-opacity="0"></stop></lineargradient>
+</defs>
+</svg>
+</div>
+<!-- 3 driver cards -->
+<div class="reveal" style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.6rem;">
+<div class="gc rb" style="padding:0.6rem 0.8rem;">
+<div style="font-size:0.85rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:#e06070;margin-bottom:0.28rem;">COVID 2020</div>
+<ul class="bl sm rb">
+<li>Physical auctions halted globally</li>
+<li>Fine stones held value vs. fashion jewelry</li>
+<li>Digital-only buyer class entered market</li>
+</ul>
+</div>
+<div class="gc gd" style="padding:0.6rem 0.8rem;">
+<div style="font-size:0.85rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:#C9A84C;margin-bottom:0.28rem;">2021–2023 Surge</div>
+<ul class="bl sm">
+<li>Post-COVID wealth effect; record lot prices</li>
+<li>Lab-grown diamonds push buyers to natural colored gemstone</li>
+<li>Bridal adoption rising to 15% market share (more engagement and wedding jewelry using color stones)</li>
+</ul>
+</div>
+<div class="gc sp" style="padding:0.6rem 0.8rem;">
+<div style="font-size:0.85rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:#6a9ae8;margin-bottom:0.28rem;">2024–2026 Landscape</div>
+<ul class="bl sm sp">
+<li>Ultra-UHNW buyers continue bidding to new records</li>
+<li>China mid-market –20% in 2024; APAC still #1 by volume</li>
+<li>Southeast Asia + Middle East confirmed emerging growth</li>
+</ul>
+</div>
+<div class="gc" style="padding:0.8rem 0.9rem;border-top:2px solid #6a9ae8;">
+<div style="font-size:0.85rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:#6a9ae8;margin-bottom:0.28rem;">Forecast Estimate</div>
+<ul class="bl sm">
+
+<li>2030 forecast: +$7.9B and about +65% market value vs. 2026</li>
+<li>2033 forecast: +$15.4B and about +127% market value vs. 2026</li>
+<li>A larger category, but still one where sourcing discipline drives margin</li>
+</ul>
+</div>
+</div>
+<div class="currency-note reveal">★ 2026 value: $12.1B USD (Business Research Insights, 2025) · Forecast sourced from BusinessResearchInsights &amp; Dataintelo</div>
+</div>
+</div>
+<div class="slide" data-slide="6">
+<div class="gradient-mesh">
+<div class="blob" style="width:420px;height:420px;top:-100px;right:-80px;background:#8B1A2A;opacity:0.14;"></div>
+<div class="blob" style="width:240px;height:240px;bottom:-60px;left:-40px;background:#C9A84C;opacity:0.07;"></div>
+</div>
+<div class="content">
+<div class="slide-label reveal">RUBY DEEP DIVE</div>
+<h2 class="slide-title reveal"><span style="color:#e06070;">Ruby</span> — Price Benchmarks &amp; <span class="gold">Landmark Sales</span></h2>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:start;">
+<div style="display:flex;flex-direction:column;gap:0.85rem;">
+<div class="reveal">
+<div style="font-size:0.75rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#7a7060;margin-bottom:0.55rem;">Polished Ruby PPC Benchmarks (2016–2026)</div>
+<div style="display:flex;flex-direction:column;gap:0.4rem;">
+<div class="gc rb" style="padding:0.65rem 0.8rem;">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.35rem;">
+<span style="font-size:0.91rem;font-weight:700;color:#f0ece4;">Burma Pigeon's Blood · Unheated</span>
+<span style="font-size:0.91rem;font-weight:800;color:#e06070;">$50K–$1M+/ct</span>
+</div>
+<div class="bar-track"><div class="bar-fill" data-width="95" style="background:linear-gradient(90deg,#8B1A2A,#e06070);"></div></div>
+</div>
+<div class="gc rb" style="padding:0.65rem 0.8rem;">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.35rem;">
+<span style="font-size:0.91rem;font-weight:700;color:#f0ece4;">Burma Ruby · Heated</span>
+<span style="font-size:0.91rem;font-weight:800;color:#E8C97A;">$20K–$150K/ct</span>
+</div>
+<div class="bar-track"><div class="bar-fill" data-width="65" style="background:linear-gradient(90deg,#8B1A2A,#C9A84C);"></div></div>
+</div>
+<div class="gc" style="padding:0.65rem 0.8rem;">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.35rem;">
+<span style="font-size:0.91rem;font-weight:700;color:#f0ece4;">Mozambique · Unheated (High-Qual.)</span>
+<span style="font-size:0.91rem;font-weight:800;color:#f0ece4;">$8K–$30K/ct</span>
+</div>
+<div class="bar-track"><div class="bar-fill" data-width="38" style="background:linear-gradient(90deg,#5a3a1a,#C9A84C);"></div></div>
+</div>
+<div class="gc" style="padding:0.65rem 0.8rem;">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.35rem;">
+<span style="font-size:0.91rem;font-weight:700;color:#f0ece4;">Mozambique · Heated</span>
+<span style="font-size:0.91rem;font-weight:800;color:#c9c0ae;">$2K–$8K/ct</span>
+</div>
+<div class="bar-track"><div class="bar-fill" data-width="18"></div></div>
+</div>
+</div>
+</div>
+<div class="reveal">
+<div style="font-size:0.75rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#7a7060;margin-bottom:0.05rem;">Insights for Paraqon</div>
+<div style="display:flex;flex-direction:column;gap:0.45rem;">
+<div class="gc rb" style="padding:0.6rem 0.82rem;">
+<div style="font-size:0.87rem;font-weight:700;color:#f0ece4;margin-bottom:0.22rem;">Mozambique is closing the perception gap</div>
+<div style="font-size:0.85rem;color:#c9c0ae;line-height:1.45;">Estrela de Fura proves top Mozambican ruby now competes credibly in the highest-value tier, even if Burma still leads at the pure prestige end.</div>
+</div>
+<div class="gc gd" style="padding:0.6rem 0.82rem;">
+<div style="font-size:0.87rem;font-weight:700;color:#f0ece4;margin-bottom:0.22rem;">Certification drives the sharpest premium expansion</div>
+<div style="font-size:0.85rem;color:#c9c0ae;line-height:1.45;">Origin plus unheated status remains the cleanest pricing lever. Paraqon should source for lab outcome.</div>
+</div>
+<div class="gc nt" style="padding:0.6rem 0.82rem;">
+<div style="font-size:0.87rem;font-weight:700;color:#f0ece4;margin-bottom:0.22rem;">3–5ct and 5–10ct are the actionable brackets</div>
+<div style="font-size:0.85rem;color:#c9c0ae;line-height:1.45;">These bands balance rarity with buyer depth, making them more scalable than trophy stones while still benefiting from strong scarcity economics.</div>
+</div>
+</div>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:0.85rem;">
+<div class="reveal">
+<div style="font-size:0.75rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#7a7060;margin-bottom:0.55rem;">Landmark Auction Records</div>
+<div style="display:flex;flex-direction:column;gap:0.42rem;">
+<div class="gc rb" style="padding:0.62rem 0.82rem;">
+<div style="font-size:0.91rem;font-weight:700;color:#f0ece4;margin-bottom:0.22rem;">🏆 Estrela de Fura · 55.22ct · Mozambique</div>
+<ul class="bl sm rb">
+<li><strong>$34.8M total</strong> — world record for any colored gemstone</li>
+<li>$630K/ct · Sotheby's New York · June 2023</li>
+</ul>
+</div>
+<div class="gc rb" style="padding:0.62rem 0.82rem;">
+<div style="font-size:0.91rem;font-weight:700;color:#f0ece4;margin-bottom:0.22rem;">Sunrise Ruby · 25.59ct · Burma · Unheated</div>
+<ul class="bl sm rb">
+<li><strong>$30.4M total</strong> · Sotheby's Geneva · May 2015</li>
+<li><strong>$1.27M/ct</strong> · Still the world per-carat record for any single ruby</li>
+</ul>
+</div>
+<div class="gc rb" style="padding:0.62rem 0.82rem;">
+<div style="font-size:0.91rem;font-weight:700;color:#f0ece4;margin-bottom:0.22rem;">Crimson Flame · 15.04ct · Burma · Unheated</div>
+<ul class="bl sm rb">
+<li><strong>$18M</strong> ($1.22M/ct) · Christie's Hong Kong · Dec 2015</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="reveal">
+<div class="gc" style="padding:0.7rem 0.85rem;border-color:rgba(201,168,76,0.18);">
+<div style="font-size:0.85rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:#C9A84C;margin-bottom:0.3rem;">⚠ Supply Crisis: Structural Shift</div>
+<ul class="bl sm">
+<li>Burma <strong>effectively off-limits</strong> — sanctions + ethical pressure; major brands halted sourcing</li>
+<li>Mozambique dominates <strong>~80% of supply</strong>; MRM production tightening</li>
+<li>MRM: 5M ct (2021) → 2.7M ct (2023); recovery to 3.95M ct in 2024</li>
+
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="currency-note reveal">★ All prices in USD · HKD converted at HKMA daily fixing on auction date</div>
+</div>
+</div>
+<div class="slide" data-slide="7">
+<div class="gradient-mesh">
+<div class="blob" style="width:420px;height:420px;top:-100px;right:-80px;background:#1e3c8c;opacity:0.16;"></div>
+<div class="blob" style="width:240px;height:240px;bottom:-60px;left:-40px;background:#C9A84C;opacity:0.07;"></div>
+</div>
+<div class="content">
+<div class="slide-label reveal">SAPPHIRE DEEP DIVE</div>
+<h2 class="slide-title reveal"><span style="color:#6a9ae8;">Sapphire</span> — Price Benchmarks &amp; <span class="gold">Landmark Sales</span></h2>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+<div class="reveal">
+<div style="font-size:0.75rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#7a7060;margin-bottom:0.55rem;">Polished Sapphire PPC Benchmarks (2016–2026)</div>
+<div style="display:flex;flex-direction:column;gap:0.4rem;">
+<div class="gc sp" style="padding:0.65rem 0.8rem;">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.35rem;">
+<span style="font-size:0.91rem;font-weight:700;color:#f0ece4;">Kashmir · Royal Blue · Unheated</span>
+<span style="font-size:0.91rem;font-weight:800;color:#f0ece4;">$50K–$271K+/ct</span>
+</div>
+<div class="bar-track"><div class="bar-fill sp" data-width="100"></div></div>
+<div style="font-size:0.85rem;color:#7a7060;margin-top:0.28rem;">Mine depleted since 1930s — zero new supply; structural scarcity</div>
+</div>
+<div class="gc sp" style="padding:0.65rem 0.8rem;">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.35rem;">
+<span style="font-size:0.91rem;font-weight:700;color:#f0ece4;">Burma · Royal Blue · Unheated</span>
+<span style="font-size:0.91rem;font-weight:800;color:#f0ece4;">$25K–$80K/ct</span>
+</div>
+<div class="bar-track"><div class="bar-fill sp" data-width="75" style="background:linear-gradient(90deg,#1e3c8c,#5580cc);"></div></div>
+</div>
+<div class="gc" style="padding:0.65rem 0.8rem;">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.35rem;">
+<span style="font-size:0.91rem;font-weight:700;color:#f0ece4;">Ceylon (Sri Lanka) · Unheated</span>
+<span style="font-size:0.91rem;font-weight:800;color:#f0ece4;">$8K–$30K/ct</span>
+</div>
+<div class="bar-track"><div class="bar-fill gd" data-width="40"></div></div>
+</div>
+<div class="gc" style="padding:0.65rem 0.8rem;">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.35rem;">
+<span style="font-size:0.91rem;font-weight:700;color:#f0ece4;">Ceylon / Madagascar · Heated</span>
+<span style="font-size:0.91rem;font-weight:800;color:#f0ece4;">$1K–$8K/ct</span>
+</div>
+<div class="bar-track"><div class="bar-fill" data-width="18"></div></div>
+</div>
+</div>
+<div class="gc sp" style="padding:0.68rem 0.85rem;margin-top:0.72rem;">
+<div style="font-size:0.85rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:#6a9ae8;margin-bottom:0.3rem;">Kashmir Premium to Ceylon</div>
+<ul class="bl sm sp">
+<li><strong>+300% to +700%</strong> premium for equivalent carat weight and quality</li>
+
+<li>Every Kashmir stone is finite — acquisition is permanent appreciation</li>
+</ul>
+</div>
+</div>
+<div class="reveal">
+<div style="font-size:0.75rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#7a7060;margin-bottom:0.55rem;">Landmark Auction Records</div>
+<div style="display:flex;flex-direction:column;gap:0.42rem;margin-bottom:0.72rem;">
+<div class="gc sp" style="padding:0.62rem 0.82rem;">
+<div style="font-size:0.91rem;font-weight:700;color:#f0ece4;margin-bottom:0.22rem;">🏆 Royal Blue Necklace · 104.61ct Kashmir</div>
+<ul class="bl sm sp">
+<li><strong>$16.2M</strong> — world record Kashmir sapphire necklace</li>
+<li>Christie's Hong Kong · November 2025</li>
+</ul>
+</div>
+<div class="gc sp" style="padding:0.62rem 0.82rem;">
+<div style="font-size:0.91rem;font-weight:700;color:#f0ece4;margin-bottom:0.22rem;">Regent Kashmir Ring · 35.09ct · Unheated</div>
+<ul class="bl sm sp">
+<li><strong>$9.5M</strong> (271K+/ct) — world per-carat sapphire record</li>
+<li>Christie's Hong Kong · May 2025</li>
+</ul>
+</div>
+<div class="gc" style="padding:0.62rem 0.82rem;">
+<div style="font-size:0.91rem;font-weight:700;color:#f0ece4;margin-bottom:0.22rem;">Regent Kashmir Ring · Christie's Geneva 2020</div>
+<ul class="bl sm">
+<li><strong>$7.4M</strong> ($200K+/ct) · Sold to Asian buyer; above $4.3M high estimate</li>
+</ul>
+</div>
+<div class="gc" style="padding:0.62rem 0.82rem;">
+<div style="font-size:0.91rem;font-weight:700;color:#f0ece4;margin-bottom:0.22rem;">Kashmir · 21.83ct · Unheated</div>
+<ul class="bl sm">
+<li><strong>~$4.5M</strong> ($206K/ct) · SSEF certified "royal blue"</li>
+<li>Christie's Hong Kong · 2023</li>
+</ul>
+</div>
+</div>
+<!-- Carat brackets -->
+<div class="gc sp" style="padding:0.7rem 0.85rem;">
+<div style="font-size:0.85rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:#6a9ae8;margin-bottom:0.35rem;">Kashmir PPC by Carat Bracket</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0.3rem;">
+<div style="text-align:center;background:rgba(30,60,140,0.12);border-radius:6px;padding:0.38rem;">
+<div style="font-size:0.91rem;font-weight:800;color:#6a9ae8;">1–3ct</div>
+<div style="font-size:0.75rem;color:#f0ece4;">$50K–$80K/ct</div>
+</div>
+<div style="text-align:center;background:rgba(30,60,140,0.18);border-radius:6px;padding:0.38rem;">
+<div style="font-size:0.91rem;font-weight:800;color:#6a9ae8;">3–5ct</div>
+<div style="font-size:0.75rem;color:#f0ece4;">$80K–$140K/ct</div>
+</div>
+<div style="text-align:center;background:rgba(30,60,140,0.26);border-radius:6px;padding:0.38rem;">
+<div style="font-size:0.91rem;font-weight:800;color:#6a9ae8;">5–10ct</div>
+<div style="font-size:0.75rem;color:#f0ece4;">$140K–$200K/ct</div>
+</div>
+<div style="text-align:center;background:rgba(30,60,140,0.34);border-radius:6px;padding:0.38rem;">
+<div style="font-size:0.91rem;font-weight:800;color:#9abbe0;">10ct+</div>
+<div style="font-size:0.75rem;color:#f0ece4;">$200K–271K+/ct</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="currency-note reveal">★ All prices in USD · HKD converted at HKMA daily fixing on auction date</div>
+</div>
+</div>
+<div class="slide" data-slide="8">
+<div class="gradient-mesh">
+<div class="blob" style="width:380px;height:380px;top:-90px;right:-70px;background:#C9A84C;opacity:0.08;"></div>
+<div class="blob" style="width:260px;height:260px;bottom:-60px;left:-40px;background:#8B1A2A;opacity:0.07;"></div>
+</div>
+<div class="content">
+<div class="slide-label reveal">ORIGIN &amp; TREATMENT ANALYSIS</div>
+<h2 class="slide-title reveal">Key Insights</h2>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.85rem;">
+<!-- Origin premium -->
+<div class="reveal">
+<div style="font-size:0.75rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#7a7060;margin-bottom:0.55rem;">Origin Premium</div>
+<div style="display:flex;flex-direction:column;gap:0.4rem;">
+<div class="gc rb" style="padding:0.62rem 0.8rem;">
+<div style="font-size:0.82rem;font-weight:800;color:#e06070;margin-bottom:0.28rem;">Ruby Origin Stack</div>
+<ul class="bl sm rb">
+<li><strong>Burma (Mogok)</strong> — +50–200% over Mozambique at equivalent quality</li>
+<li><strong>Mozambique (MRM)</strong> — base reference; ~80% of world supply</li>
+<li><strong>Gap narrowing</strong> — Estrela de Fura ($34.8M) proved Mozambican origin no longer a ceiling</li>
+<li>Burma sanctions accelerating perception normalization</li>
+</ul>
+</div>
+<div class="gc sp" style="padding:0.62rem 0.8rem;">
+<div style="font-size:0.91rem;font-weight:800;color:#6a9ae8;margin-bottom:0.28rem;">Sapphire Origin Stack</div>
+<ul class="bl sm sp">
+<li><strong>Kashmir</strong> — +300–700% over Ceylon (no supply since 1930s)</li>
+<li><strong>Burma</strong> — +80–200% over Ceylon</li>
+<li><strong>Ceylon (Sri Lanka)</strong> — base reference; most available</li>
+<li><strong>Madagascar</strong> — 10–30% discount to Ceylon for heated stones</li>
+</ul>
+</div>
+</div>
+</div>
+<!-- Treatment -->
+<div class="reveal">
+<div style="font-size:0.75rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#7a7060;margin-bottom:0.55rem;">Treatment Premium</div>
+<div style="display:flex;flex-direction:column;gap:0.4rem;">
+<div class="gc rb" style="padding:0.62rem 0.8rem;">
+<div style="font-size:0.91rem;font-weight:800;color:#e06070;margin-bottom:0.28rem;">Ruby Treatment</div>
+<ul class="bl sm rb">
+<li><strong>~95% of rubies</strong> are heated — unheated is structurally rare</li>
+<li>Unheated commands <strong>+50–100%</strong> premium over heated equivalents</li>
+<li>GRS "No indications of heating" = highest certification tier</li>
+<li>Only GRS, Gübelin, SSEF, GIA accepted at major houses</li>
+</ul>
+</div>
+<div class="gc sp" style="padding:0.62rem 0.8rem;">
+<div style="font-size:0.91rem;font-weight:800;color:#6a9ae8;margin-bottom:0.28rem;">Sapphire Treatment</div>
+<ul class="bl sm sp">
+<li>Unheated sapphire: <strong>+20–300%</strong> over heated equivalents</li>
+<li>Kashmir stones almost never heated — already excellent color</li>
+<li>Ceylon heated = mainstream; unheated Ceylon = collector tier</li>
+</ul>
+</div>
+</div>
+</div>
+<!-- Carat brackets + key sights -->
+<div class="reveal">
+<div style="font-size:0.75rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#7a7060;margin-bottom:0.55rem;">Carat Weight Scaling (Ruby)</div>
+<div style="display:flex;flex-direction:column;gap:0.38rem;margin-bottom:0.65rem;">
+<div class="gc" style="padding:0.55rem 0.75rem;display:flex;justify-content:space-between;align-items:center;">
+<span style="font-size:0.91rem;font-weight:600;color:#f0ece4;">1–3 ct</span>
+<div style="text-align:right;"><div style="font-size:0.91rem;font-weight:700;color:#C9A84C;">$5K–$30K/ct</div><div style="font-size:0.75rem;color:#7a7060;">Burma heated, fine quality</div></div>
+</div>
+<div class="gc" style="padding:0.55rem 0.75rem;display:flex;justify-content:space-between;align-items:center;">
+<span style="font-size:0.91rem;font-weight:600;color:#f0ece4;">3–5 ct</span>
+<div style="text-align:right;"><div style="font-size:0.91rem;font-weight:700;color:#C9A84C;">$30K–$100K/ct</div><div style="font-size:0.75rem;color:#7a7060;">Super-linear jump; supply cliff</div></div>
+</div>
+<div class="gc" style="padding:0.55rem 0.75rem;display:flex;justify-content:space-between;align-items:center;">
+<span style="font-size:0.91rem;font-weight:600;color:#f0ece4;">5–10 ct</span>
+<div style="text-align:right;"><div style="font-size:0.91rem;font-weight:700;color:#e06070;">$100K–$500K/ct</div><div style="font-size:0.75rem;color:#7a7060;">Institutional collector tier</div></div>
+</div>
+<div class="gc rb" style="padding:0.55rem 0.75rem;display:flex;justify-content:space-between;align-items:center;">
+<span style="font-size:0.91rem;font-weight:600;color:#f0ece4;">10ct+</span>
+<div style="text-align:right;"><div style="font-size:0.91rem;font-weight:700;color:#e06070;">$500K–$1M+/ct</div><div style="font-size:0.75rem;color:#7a7060;">Trophy asset tier</div></div>
+</div>
+</div>
+<div class="gc gd" style="padding:0.62rem 0.8rem;">
+<div style="font-size:0.85rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#C9A84C;margin-bottom:0.28rem;">Why It Matters to Paraqon</div><div style="font-size:0.91rem;color:#f0ece4;margin:0.05rem 0 0.55rem;line-height:1.45;">where pricing gaps, scarcity and venue shifts create sourcing edge</div>
+<ul class="bl sm">
+<li>Unheated certification = immediate +50–300% resale premium</li>
+<li>3–5ct bracket has steepest PPC jump — highest ROI per unit size</li>
+<li>Kashmir scarcity is permanent — every acquisition appreciates structurally</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="currency-note reveal">★ All prices in USD · HKD converted at HKMA daily fixing on auction date</div>
+</div>
+</div>
+<div class="slide" data-slide="9">
+  <div class="gradient-mesh">
+    <div class="blob" style="width:360px;height:360px;top:-90px;right:-70px;background:#C9A84C;opacity:0.08;"></div>
+    <div class="blob" style="width:250px;height:250px;bottom:-60px;left:-40px;background:#8B1A2A;opacity:0.06;"></div>
+  </div>
+  <div class="content">
+    <div class="slide-label reveal">ACTION PLANS FOR PARAQON</div>
+    <h2 class="slide-title reveal">Action Plans for <span class="gold">Paraqon</span></h2>
+    <div class="reveal" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;">
+      <div class="gc rb" style="padding:0.95rem 1rem;min-height:320px;">
+        <div style="font-size:0.91rem;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:#e06070;margin-bottom:0.45rem;">Short Term · 3–6 Months</div>
+        <ul class="bl sm">
+          <li>Set up structured data collection across Christie’s and Sotheby’s catalogues, lot detail pages and results pages.</li>
+          <li>Build a sourcing watchlist by origin, treatment, carat bracket and auction venue so buying decisions are driven by evidence, not instinct.</li>
+          <li>Define Paraqon’s pricing rules for hero stones versus commercial luxury inventory.</li>
+        </ul>
+      </div>
+      <div class="gc" style="padding:0.95rem 1rem;min-height:320px;border-top:2px solid #C9A84C;">
+        <div style="font-size:0.91rem;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:#C9A84C;margin-bottom:0.45rem;">Mid Term · 1–3 Years</div>
+        <ul class="bl sm">
+          <li>Create a proprietary Paraqon rarity index using origin, treatment, certification quality and auction comparables.</li>
+          <li>Link sourcing data to sell-through, gross margin and client demand so buying performance improves with each cycle.</li>
+          <li>Use auction outcomes to sharpen brand storytelling around scarcity, provenance and investment-grade quality.</li>
+        </ul>
+      </div>
+      <div class="gc sp" style="padding:0.95rem 1rem;min-height:320px;">
+        <div style="font-size:0.91rem;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:#6a9ae8;margin-bottom:0.45rem;">Long Term · 3–10 Years</div>
+        <ul class="bl sm">
+          <li>Build a defensible auction intelligence platform that becomes Paraqon’s internal decision engine for pricing and sourcing.</li>
+          <li>Develop origin-led supply relationships in categories where scarcity is structural and premium capture is repeatable.</li>
+          <li>Turn pricing intelligence into regional expansion strategy across Hong Kong, Southeast Asia and Middle East buyer corridors.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="slide" data-slide="10">
+  <div class="gradient-mesh">
+    <div class="blob" style="width:360px;height:360px;top:-90px;right:-70px;background:#1e3c8c;opacity:0.08;"></div>
+    <div class="blob" style="width:250px;height:250px;bottom:-60px;left:-40px;background:#C9A84C;opacity:0.06;"></div>
+  </div>
+  <div class="content">
+    <div class="slide-label reveal">WHAT TO INVESTIGATE NEXT</div>
+    <h2 class="slide-title reveal">What to <span class="gold">Investigate Next</span></h2>
+    <div class="reveal" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+      <div class="gc" style="padding:0.95rem 1rem;border-top:2px solid #6a9ae8;min-height:175px;">
+        <div style="font-size:1.08rem;font-weight:800;color:#f0ece4;line-height:1.45;margin-bottom:0.35rem;">End-customer price ladder</div>
+        <div style="font-size:1.02rem;line-height:1.55;color:#c9c0ae;">Benchmark insurance values, resale values and retail markups across top maisons so Paraqon understands the full customer reference price, not only trade acquisition cost.</div>
+      </div>
+      <div class="gc" style="padding:0.95rem 1rem;border-top:2px solid #e06070;min-height:175px;">
+        <div style="font-size:1.08rem;font-weight:800;color:#f0ece4;line-height:1.45;margin-bottom:0.35rem;">Best margin brackets</div>
+        <div style="font-size:1.02rem;line-height:1.55;color:#c9c0ae;">Map which carat brackets show the strongest margin resilience by origin and treatment, especially where 3–5ct and 5–10ct stones create the best value-to-rarity ratio.</div>
+      </div>
+      <div class="gc" style="padding:0.95rem 1rem;border-top:2px solid #C9A84C;min-height:175px;">
+        <div style="font-size:1.08rem;font-weight:800;color:#f0ece4;line-height:1.45;margin-bottom:0.35rem;">Auction timing signal</div>
+        <div style="font-size:1.02rem;line-height:1.55;color:#c9c0ae;">Track pass-rate changes in Hong Kong, Geneva and New York ahead of major sourcing windows to spot soft-demand periods before headline prices visibly reset.</div>
+      </div>
+      <div class="gc" style="padding:0.95rem 1rem;border-top:2px solid #E8C97A;min-height:175px;">
+        <div style="font-size:1.08rem;font-weight:800;color:#f0ece4;line-height:1.45;margin-bottom:0.35rem;">Buyer-seller matching</div>
+        <div style="font-size:1.02rem;line-height:1.55;color:#c9c0ae;">Build better intelligence on what buyers and sellers want, then map those preferences into a tighter matching system that helps Paraqon connect the right stone with the right counterparty faster.</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="nav-controls">
+<button class="nav-btn" onclick="changeSlide(-1)">‹</button>
+<div class="slide-dots" id="dots"></div>
+<button class="nav-btn" onclick="changeSlide(1)">›</button>
+<span class="slide-counter" id="counter">1 / 13</span>
+</div>
+<script>
+  let current=1;
+  const total=document.querySelectorAll('.slide').length;
+  const dotsContainer=document.getElementById('dots');
+  const counter=document.getElementById('counter');
+  for(let i=1;i<=total;i++){const dot=document.createElement('div');dot.className='dot'+(i===1?' active':'');dot.onclick=()=>goToSlide(i);dotsContainer.appendChild(dot);}
+  counter.textContent='1 / '+total;
+  function goToSlide(n){const prev=document.querySelector('.slide.active');const next=document.querySelector(`.slide[data-slide="${n}"]`);if(prev)prev.classList.remove('active');if(next){next.classList.add('active');animateSlide(next);}current=n;updateNav();}
+  function changeSlide(dir){let n=current+dir;if(n<1)n=total;if(n>total)n=1;goToSlide(n);}
+  function updateNav(){document.querySelectorAll('.dot').forEach((d,i)=>{d.classList.toggle('active',i+1===current);});counter.textContent=current+' / '+total;}
+  document.addEventListener('keydown',(e)=>{if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();changeSlide(1);}if(e.key==='ArrowLeft'){e.preventDefault();changeSlide(-1);}});
+  let touchStartX=0;
+  document.addEventListener('touchstart',(e)=>{touchStartX=e.touches[0].clientX;});
+  document.addEventListener('touchend',(e)=>{const diff=touchStartX-e.changedTouches[0].clientX;if(Math.abs(diff)>50)changeSlide(diff>0?1:-1);});
+
+  function animateSlide(slide){
+    slide.querySelectorAll('.reveal').forEach((el,i)=>{
+      el.style.transition='none';el.style.opacity='0';el.style.transform='translateY(16px)';el.offsetHeight;
+      const d=i*0.065;el.style.transition=`opacity 0.32s ease ${d}s,transform 0.32s ease ${d}s`;
+      el.style.opacity='1';el.style.transform='translateY(0)';
+    });
+    animateEffects(slide);
+  }
+
+  function animateEffects(slide){
+    slide.querySelectorAll('.bar-fill:not(.fill-init)').forEach((bar,i)=>{
+      bar.classList.add('fill-init');bar.style.width='0%';bar.style.transition=`width 0.75s ease ${i*0.08}s`;bar.offsetHeight;bar.style.width=(bar.dataset.width||'0')+'%';
+    });
+    slide.querySelectorAll('.mkt-path:not(.line-init)').forEach((path,i)=>{
+      path.classList.add('line-init');setTimeout(()=>path.classList.add('drawn'),300+i*200);
+    });
+  }
+
+  document.addEventListener('mousemove',(e)=>{
+    const s=document.querySelector('.mouse-spotlight');
+    if(s)s.style.background=`radial-gradient(600px circle at ${e.clientX}px ${e.clientY}px,rgba(201,168,76,0.05),transparent 40%)`;
+  });
+
+  window.initParticles=function(canvas,opts){
+    if(!canvas)return;const ctx=canvas.getContext('2d');canvas.width=canvas.offsetWidth;canvas.height=canvas.offsetHeight;
+    const count=opts.count||18;const interactive=opts.interactive!==false;let mx=-1000,my=-1000;
+    const ps=Array.from({length:count},()=>({x:Math.random()*canvas.width,y:Math.random()*canvas.height,vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3,size:Math.random()*2+0.8,alpha:Math.random()*.28+0.08}));
+    if(interactive){canvas.addEventListener('mousemove',(e)=>{const r=canvas.getBoundingClientRect();mx=e.clientX-r.left;my=e.clientY-r.top;});}
+    (function tick(){ctx.clearRect(0,0,canvas.width,canvas.height);ps.forEach(p=>{if(interactive){const dx=p.x-mx,dy=p.y-my,d=Math.sqrt(dx*dx+dy*dy);if(d<100){const f=(100-d)/100*2;p.vx+=(dx/d)*f*.1;p.vy+=(dy/d)*f*.1;}}p.vx*=.98;p.vy*=.98;p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=canvas.width;if(p.x>canvas.width)p.x=0;if(p.y<0)p.y=canvas.height;if(p.y>canvas.height)p.y=0;ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fillStyle=`rgba(201,168,76,${p.alpha})`;ctx.fill();});requestAnimationFrame(tick);})();
+  };
+  document.querySelectorAll('.particle-canvas').forEach(c=>window.initParticles(c,{interactive:true,count:48}));
+  document.querySelectorAll('.particle-canvas-ambient').forEach(c=>window.initParticles(c,{interactive:false,count:16}));
+  try{animateSlide(document.querySelector('.slide.active'));}catch(e){console.warn(e);}
+</script>
+</body>
+</html>
